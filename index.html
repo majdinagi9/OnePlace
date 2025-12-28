@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OnePlace</title>
+    <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+    <!-- Mobile web app capable meta tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Finance Tracker">
+    <!-- iOS home screen icons -->
+    <link rel="apple-touch-icon" href="assets/icons/icon-180.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="assets/icons/icon-152.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="assets/icons/icon-167.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-180.png">
+    <link rel="apple-touch-startup-image" href="assets/icons/splash-2048x2732.png" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="assets/icons/splash-1668x2224.png" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="assets/icons/splash-1536x2048.png" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="assets/icons/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+    <link rel="apple-touch-startup-image" href="assets/icons/splash-828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+    <!-- Web app manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --income-color: #28a745;
+            --expense-color: #dc3545;
+            --primary-color: #0d6efd;
+            --accent-color: #0d6efd;
+            --accent-color-soft: rgba(13, 110, 253, 0.15);
+            --card-bg: #ffffff;
+            --card-border: #dee2e6;
+            --panel-bg: #f3f6fb;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+            color: #212529;
+            font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+        }
+        
+        body.dark-mode {
+            background-color: #212529;
+            color: #f8f9fa;
+            --card-bg: #2c3034;
+            --card-border: #3c4044;
+            --panel-bg: #1f2429;
+            color-scheme: dark;
+        }
+
+        body.dark-mode .card {
+            background-color: var(--card-bg);
+            border-color: var(--card-border);
+        }
+
+        body.dark-mode .text-muted {
+            color: #adb5bd !important;
+        }
+
+        body.dark-mode .form-control,
+        body.dark-mode .form-select {
+            background-color: #1f2429;
+            color: #f8f9fa;
+            border-color: #3c4044;
+        }
+
+        body.dark-mode .form-control::placeholder {
+            color: #9aa1a9;
+        }
+
+        body.dark-mode .form-check-input {
+            background-color: #1f2429;
+            border-color: #3c4044;
+        }
+
+        .communication-form-card,
+        .communication-board-card {
+            border-top: 4px solid var(--accent-color);
+        }
+
+        .communication-board-card {
+            border-top-color: #20c997;
+        }
+
+        .communication-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--panel-bg);
+            border-radius: 18px;
+            min-height: 260px;
+        }
+
+        .communication-card--focused {
+            outline: 3px solid rgba(13, 110, 253, 0.35);
+            box-shadow: 0 0 0 6px rgba(13, 110, 253, 0.15);
+        }
+
+        .communication-card {
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 0.75rem;
+            background: linear-gradient(145deg, rgba(13, 110, 253, 0.06), var(--card-bg));
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            min-height: 170px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .communication-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .communication-image {
+            background: rgba(255, 255, 255, 0.65);
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            aspect-ratio: 4 / 3;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        body.dark-mode .communication-image {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .communication-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .communication-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            width: 100%;
+            height: 100%;
+            padding: 0.5rem;
+            text-align: center;
+        }
+
+        .communication-emoji {
+            font-size: clamp(3.75rem, 6vw, 5rem);
+            line-height: 1;
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji Mozilla", "Segoe UI Symbol", "Noto Emoji", sans-serif;
+            filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.08));
+        }
+
+        .communication-text-fallback {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-align: center;
+            padding: 0.25rem;
+            word-break: break-word;
+        }
+
+        .communication-emoji-input {
+            max-width: 130px;
+        }
+
+        .communication-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .communication-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .communication-header {
+            background: var(--panel-bg);
+            padding: 0.75rem 1rem;
+            border-radius: 14px;
+        }
+
+        .communication-form-toggle i {
+            transition: transform 0.2s ease;
+        }
+
+        .communication-form-toggle.collapsed i {
+            transform: rotate(180deg);
+        }
+
+        .upload-preview {
+            border: 1px dashed var(--card-border);
+            border-radius: 8px;
+            padding: 0.5rem;
+            min-height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        body.dark-mode .upload-preview {
+            background: rgba(255, 255, 255, 0.05);
+            color: #adb5bd;
+        }
+
+        .upload-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+        
+        .card {
+            border-radius: 10px;
+            background-color: var(--card-bg);
+            border-color: var(--card-border);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .positive { color: var(--income-color); }
+        .negative { color: var(--expense-color); }
+        
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        #incomeRadio:checked {
+            background-color: var(--income-color);
+            border-color: var(--income-color);
+        }
+        
+        #expenseRadio:checked {
+            background-color: var(--expense-color);
+            border-color: var(--expense-color);
+        }
+        
+        .form-check-label {
+            margin-left: 5px;
+            font-weight: 500;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem var(--accent-color-soft);
+        }
+        
+        .btn-success {
+            background-color: var(--income-color);
+            border: none;
+        }
+        
+        .btn-danger {
+            background-color: var(--expense-color);
+            border: none;
+        }
+        
+        .balance-display {
+            transition: all 0.3s ease;
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: inline-block;
+        }
+        
+        .balance-display.positive {
+            background: rgba(40, 167, 69, 0.1);
+        }
+        
+        .balance-display.negative {
+            background: rgba(220, 53, 69, 0.1);
+        }
+        
+        .list-group-item {
+            transition: transform 0.2s ease;
+            border-radius: 8px !important;
+            margin-bottom: 8px;
+            border-color: var(--card-border);
+            background-color: var(--card-bg);
+        }
+
+        .list-group-item[data-transaction]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        #mobile-add-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            #mobile-add-btn {
+                display: block;
+            }
+            .history-section {
+                max-height: 60vh;
+                overflow-y: auto;
+            }
+            .list-group-item {
+                padding: 12px;
+            }
+            .badge {
+                font-size: 0.75rem;
+                padding: 0.25em 0.5em;
+            }
+            .btn-sm {
+                padding: 0.25rem 0.5rem;
+            }
+        }
+
+        .accent-controls, .theme-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .accent-options {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .accent-swatch {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+            background-clip: padding-box;
+        }
+
+        .accent-swatch:focus-visible {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        .accent-swatch.active {
+            border-color: currentColor;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .insight-card {
+            border-radius: 16px;
+            padding: 1.25rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            box-shadow: 0 10px 25px rgba(13, 110, 253, 0.08);
+            height: 100%;
+            transition: transform 0.2s ease;
+        }
+
+        .insight-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .insight-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #6c757d;
+        }
+
+        body.dark-mode .insight-label {
+            color: #ced4da;
+        }
+
+        .insight-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .insight-meta {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        body.dark-mode .insight-meta {
+            color: #adb5bd;
+        }
+
+        .category-pill-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .category-pill {
+            border-radius: 999px;
+            padding: 0.4rem 0.9rem;
+            border: 1px solid transparent;
+            background: rgba(0, 0, 0, 0.03);
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+        }
+
+        .category-pill:hover {
+            transform: translateY(-2px);
+        }
+
+        .category-pill.active {
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+        }
+
+        .category-hint {
+            min-height: 38px;
+        }
+
+        .category-guidance {
+            min-height: 32px;
+            padding: 0.5rem;
+            border-radius: 0.75rem;
+            background: var(--accent-color-soft);
+        }
+
+        .group-header {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: var(--card-bg);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #6c757d;
+        }
+
+        body.dark-mode .group-header {
+            color: #adb5bd;
+        }
+
+        #add-transaction,
+        #save-transaction {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        #add-transaction:hover,
+        #save-transaction:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+        }
+
+        #add-transaction:active,
+        #save-transaction:active {
+            transform: scale(0.98);
+        }
+
+        .category-badge {
+            padding: 0.3em 0.6em;
+            border-radius: 1rem;
+            font-size: 0.875em;
+            font-weight: 600;
+            white-space: nowrap;
+            color: white;
+        }
+
+        .list-group-item .transaction-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .transaction-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .transaction-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875em;
+            color: #6c757d;
+        }
+
+        #category-filter {
+            min-width: 150px;
+        }
+
+        .tab-nav .btn {
+            border-radius: 999px;
+            transition: all 0.2s ease;
+        }
+
+        .tab-nav .btn.active {
+            color: #fff;
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            box-shadow: 0 8px 18px rgba(13, 110, 253, 0.25);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        #todo-list .list-group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        #todo-list .todo-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        #todo-list .todo-actions button {
+            min-width: 32px;
+        }
+
+        .shared-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1rem;
+        }
+
+        .shared-balance {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .shared-balance strong {
+            font-size: 1.1rem;
+        }
+
+        .shared-expense-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            background: rgba(13, 110, 253, 0.1);
+            font-size: 0.85rem;
+        }
+
+        #shared-expense-history .list-group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        #shared-todo-list .list-group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        @media (max-width: 576px) {
+            .accent-controls, .theme-controls {
+                width: 100%;
+            }
+            .accent-options {
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="d-flex flex-column flex-md-row align-items-md-center gap-3 mb-4">
+            <div>
+                <h1 class="mb-1">One Place</h1>
+                <p class="text-muted mb-0">Stay on top of everything.</p>
+            </div>
+            <div class="d-flex flex-wrap gap-3 ms-md-auto w-100 w-md-auto">
+                <div class="theme-controls flex-grow-1 flex-md-grow-0">
+                    <label for="themeMode" class="form-label text-muted small mb-0">Theme</label>
+                    <select id="themeMode" class="form-select form-select-sm">
+                        <option value="auto">System</option>
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                </div>
+                <div class="accent-controls flex-grow-1 flex-md-grow-0">
+                    <span class="form-label text-muted small mb-0">Accent</span>
+                    <div id="accent-options" class="accent-options">
+                        <button type="button" class="accent-swatch active" data-accent="#0d6efd" aria-label="Blue accent" style="background-color: #0d6efd; color: #0d6efd;"></button>
+                        <button type="button" class="accent-swatch" data-accent="#20c997" aria-label="Teal accent" style="background-color: #20c997; color: #20c997;"></button>
+                        <button type="button" class="accent-swatch" data-accent="#6f42c1" aria-label="Purple accent" style="background-color: #6f42c1; color: #6f42c1;"></button>
+                        <button type="button" class="accent-swatch" data-accent="#fd7e14" aria-label="Orange accent" style="background-color: #fd7e14; color: #fd7e14;"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mb-4 tab-nav">
+            <button class="btn btn-outline-primary active" data-tab-target="finance">
+                <i class="bi bi-wallet2 me-1"></i> Finance
+            </button>
+            <button class="btn btn-outline-primary" data-tab-target="organizer">
+                <i class="bi bi-check2-square me-1"></i> Organizer
+            </button>
+            <button class="btn btn-outline-primary" data-tab-target="shared">
+                <i class="bi bi-people me-1"></i> Split
+            </button>
+            <button class="btn btn-outline-primary" data-tab-target="communication">
+                <i class="bi bi-chat-dots me-1"></i> Communication
+            </button>
+        </div>
+
+        <div class="tab-panel active" data-tab-panel="finance">
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-md-4">
+                <div class="insight-card h-100">
+                    <div class="insight-label">Total Gain</div>
+                    <div class="insight-value positive" id="insight-income">$0.00</div>
+                    <div class="insight-meta"><i class="bi bi-arrow-up-right"></i> Great job building momentum</div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="insight-card h-100">
+                    <div class="insight-label">Total Owe</div>
+                    <div class="insight-value negative" id="insight-expense">$0.00</div>
+                    <div class="insight-meta"><i class="bi bi-lightning-charge"></i> Keep essentials covered first</div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="insight-card h-100">
+                    <div class="insight-label">Top Category</div>
+                    <div class="insight-value" id="insight-top-category">No data yet</div>
+                    <div class="insight-meta">
+                        <span id="insight-top-category-amount">$0.00</span> spent · Last 7 days: <span id="insight-recent">$0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="mb-0">Add Transaction</h2>
+                    <button id="toggle-input" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-chevron-up"></i> Hide
+                    </button>
+                </div>
+                <div class="input-section" id="input-section">
+                    <div class="row g-2">
+                        <div class="col-12 col-md-4">
+                            <input type="text" id="description" class="form-control" placeholder="Description" required>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <input type="number" 
+                                   id="amount" 
+                                   class="form-control" 
+                                   placeholder="Amount" 
+                                   required 
+                                   step="0.01"
+                                   inputmode="decimal"
+                                   pattern="[0-9]*">
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <div id="category-pill-group" class="category-pill-group"></div>
+                            <input type="hidden" id="category" required>
+                            <small id="category-hint" class="text-muted d-block mt-2 category-hint">
+                                Choose a category to see smart tips.
+                            </small>
+                        </div>
+                        <div class="col-12 col-md-2">
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="transactionType" id="incomeRadio" value="income" checked>
+                                    <label class="form-check-label" for="incomeRadio">Gain</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="transactionType" id="expenseRadio" value="expense">
+                                    <label class="form-check-label" for="expenseRadio">Owe</label>
+                                </div>
+                            </div>
+                            <div id="category-guidance" class="category-guidance text-muted small mt-2">
+                                Picking a category will auto-select the right type.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2 mt-3">
+                        <button id="add-transaction" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> Add Transaction
+                        </button>
+                        <button id="save-transaction" class="btn btn-primary" style="display: none;">
+                            <i class="bi bi-save"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body text-center">
+                <h2 class="mb-3">Balance</h2>
+                <div id="balance" class="balance-display fs-2 fw-bold">$0.00</div>
+                <div id="balance-scope" class="text-muted small mt-2">All categories</div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="mb-0">History&nbsp;</h3>
+                    <div class="d-flex gap-2 align-items-center">
+                        <select id="category-filter" class="form-select form-select-sm">
+                            <option value="">All Categories</option>
+                            <optgroup label="Income">
+                                <option value="salary">Salary</option>
+                                <option value="freelance">Freelance</option>
+                                <option value="investments">Investments</option>
+                                <option value="other-income">Other Income</option>
+                            </optgroup>
+                            <optgroup label="Expenses">
+                                <option value="food">Food & Dining</option>
+                                <option value="transport">Transport</option>
+                                <option value="bills">Bills & Utilities</option>
+                                <option value="shopping">Shopping</option>
+                                <option value="entertainment">Entertainment</option>
+                                <option value="health">Healthcare</option>
+                                <option value="education">Education</option>
+                                <option value="other-expense">Other Expense</option>
+                            </optgroup>
+                        </select>
+                        <div class="text-muted small text-end" id="category-balance-indicator">
+                            All categories · Balance $0.00
+                        </div>
+                        <button id="toggle-history" class="btn btn-info btn-sm">
+                            <i class="bi bi-chevron-down"></i> Show
+                        </button>
+                    </div>
+                </div>
+                <div class="history-section" id="history-section" style="display: none;">
+                    <ul id="history-list" class="list-group"></ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2">
+            <button id="export-data" class="btn btn-secondary">
+                <i class="bi bi-download"></i> Export to CSV
+            </button>
+            <button id="clear-data" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Clear All Data
+            </button>
+        </div>
+        </div> <!-- end finance panel -->
+
+        <div class="tab-panel" data-tab-panel="organizer">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h2 class="mb-1">Organizer</h2>
+                            <p class="text-muted mb-0">Capture quick todos and stay on top of priorities.</p>
+                        </div>
+                        <span class="badge bg-primary" id="todo-progress">0 of 0 complete</span>
+                    </div>
+                    <form id="todo-form" class="row g-2 mb-3">
+                        <div class="col-12 col-md-8">
+                            <input type="text" id="todo-input" class="form-control" placeholder="Add new task" required>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="input-group">
+                                <select id="todo-priority" class="form-select">
+                                    <option value="normal">Normal</option>
+                                    <option value="high">High</option>
+                                    <option value="low">Low</option>
+                                </select>
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="bi bi-plus-circle me-1"></i> Add
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <ul id="todo-list" class="list-group"></ul>
+                </div>
+            </div>
+        </div> <!-- end organizer panel -->
+
+        <div class="tab-panel" data-tab-panel="shared">
+            <div class="shared-grid mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h2 class="mb-1">Balances</h2>
+                                <p class="text-muted mb-0">Track who owes what.</p>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary" id="reset-shared-balances">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                        </div>
+                        <ul id="shared-participant-list" class="list-unstyled mb-3"></ul>
+                        <form id="shared-participant-form" class="input-group">
+                            <input type="text" id="shared-participant-input" class="form-control" placeholder="Add person" required>
+                            <button class="btn btn-primary" type="submit">
+                                <i class="bi bi-person-plus"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h2 class="mb-3">Split Expense</h2>
+                        <form id="shared-expense-form" class="row g-2">
+                            <div class="col-12">
+                                <input type="text" id="shared-expense-description" class="form-control" placeholder="Description" required>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <input type="number" id="shared-expense-amount" class="form-control" placeholder="Amount" step="0.01" min="0.01" required>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <select id="shared-expense-payer" class="form-select" required></select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small text-muted">Split between</label>
+                                <div id="shared-expense-participants" class="d-flex flex-wrap gap-2"></div>
+                            </div>
+                            <div class="col-12">
+                                <button class="btn btn-primary w-100" type="submit">
+                                    <i class="bi bi-scissors"></i> Log Split
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="mb-0">Shared Expense History</h2>
+                        <span class="text-muted small" id="shared-expense-summary">No expenses yet</span>
+                    </div>
+                    <ul id="shared-expense-history" class="list-group"></ul>
+                </div>
+            </div>
+        </div> <!-- end shared panel -->
+
+        <div class="tab-panel" data-tab-panel="communication">
+            <div class="row g-3">
+                <div class="col-12 col-lg-4">
+                    <div class="card shadow-sm h-100 communication-form-card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-start gap-2 mb-3">
+                                <i class="bi bi-stars text-primary mt-1"></i>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-start justify-content-between gap-3">
+                                        <div>
+                                            <h5 class="mb-1">Create a button</h5>
+                                            <small class="text-muted">Add a quick card with a title, recording, and optional photo.</small>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-secondary communication-form-toggle" id="communication-form-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#communication-form-body" aria-expanded="true" aria-controls="communication-form-body">
+                                            <i class="bi bi-chevron-up"></i>
+                                            <span class="visually-hidden">Toggle create button form</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="communication-form-body" class="collapse show">
+                                <form id="communication-form" class="vstack gap-3">
+                                    <div>
+                                        <label class="form-label" for="communication-title">Button title</label>
+                                        <input type="text" id="communication-title" class="form-control" placeholder="E.g. Snack" required>
+                                        <small class="text-muted">Short text that shows on the card.</small>
+                                    </div>
+                                    <div>
+                                        <label class="form-label" for="communication-emoji">Emoji or symbol (optional)</label>
+                                        <input type="text" id="communication-emoji" class="form-control communication-emoji-input" placeholder="Emoji" inputmode="text" autocomplete="off" maxlength="4">
+                                        <small class="text-muted">Pick the emoji that appears on the card if no picture is used.</small>
+                                    </div>
+                                    <div>
+                                        <label class="form-label mb-0">Record your voice</label>
+                                        <div class="mt-2">
+                                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                <button type="button" class="btn btn-outline-primary btn-sm" id="communication-record">
+                                                    <i class="bi bi-mic"></i> Start recording
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="communication-play-recording">
+                                                    <i class="bi bi-play-circle"></i> Play recording
+                                                </button>
+                                                <small class="text-muted" id="communication-recording-status">No recording yet. Please record yourself saying the request above.</small>
+                                            </div>
+                                            <small class="text-muted d-block mt-1">Your recording will play when the card is tapped.</small>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="d-flex align-items-center justify-content-between gap-2">
+                                            <label class="form-label mb-0" for="communication-image">Picture (optional)</label>
+                                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#communication-picture-body" aria-expanded="false" aria-controls="communication-picture-body">
+                                                <i class="bi bi-chevron-down"></i>
+                                                <span class="visually-hidden">Toggle picture section</span>
+                                            </button>
+                                        </div>
+                                        <div id="communication-picture-body" class="collapse mt-2">
+                                            <input type="file" id="communication-image" class="form-control" accept="image/*">
+                                            <div id="communication-preview" class="upload-preview mt-2">No image selected</div>
+                                            <small class="text-muted">Use a friendly photo or symbol to make the request clear.</small>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary flex-grow-1" id="communication-submit">
+                                            <i class="bi bi-plus-circle"></i> Save button
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary d-none" id="communication-cancel">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-8">
+                    <div class="card shadow-sm h-100 communication-board-card">
+                        <div class="card-body d-flex flex-column">
+                            <div id="communication-grid" class="communication-grid flex-grow-1"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- end communication panel -->
+    </div>
+
+    <button id="mobile-add-btn" class="btn btn-success shadow">
+        <i class="bi bi-plus fs-4"></i>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
